@@ -20,7 +20,7 @@ def train(train_dataloader, model, opt, epoch, args, writer):
         labels = labels.to(args.device).to(torch.long)
 
         # ------ TO DO: Forward Pass ------
-        predictions = 
+        predictions = model(point_clouds)
 
         if (args.task == "seg"):
             labels = labels.reshape([-1])
@@ -55,7 +55,8 @@ def test(test_dataloader, model, epoch, args, writer):
 
             # ------ TO DO: Make Predictions ------
             with torch.no_grad():
-                pred_labels = 
+                outputs = model(point_clouds)
+                pred_labels = outputs.argmax(dim=1)
             correct_obj += pred_labels.eq(labels.data).cpu().sum().item()
             num_obj += labels.size()[0]
 
@@ -74,7 +75,9 @@ def test(test_dataloader, model, epoch, args, writer):
 
             # ------ TO DO: Make Predictions ------
             with torch.no_grad():     
-                pred_labels = 
+                outputs = model(point_clouds)
+                # outputs: (B, N, C) -> predicted per-point labels (B, N)
+                pred_labels = outputs.argmax(dim=2)
 
             correct_point += pred_labels.eq(labels.data).cpu().sum().item()
             num_point += labels.view([-1,1]).size()[0]
@@ -99,9 +102,10 @@ def main(args):
 
     # ------ TO DO: Initialize Model ------
     if args.task == "cls":
-        model = 
+        model = cls_model()
     else:
-        model = 
+        model = seg_model(num_seg_classes=args.num_seg_class)
+    model = model.to(args.device)
     
     # Load Checkpoint 
     if args.load_checkpoint:
