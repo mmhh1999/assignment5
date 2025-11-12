@@ -36,7 +36,8 @@ if __name__ == '__main__':
     create_dir(args.output_dir)
 
     # ------ TO DO: Initialize Model for Segmentation Task  ------
-    model = 
+    model = seg_model(num_seg_classes=args.num_seg_class)
+    model = model.to(args.device)
     
     # Load Model Checkpoint
     model_path = './checkpoints/seg/{}.pt'.format(args.load_checkpoint)
@@ -53,7 +54,10 @@ if __name__ == '__main__':
     test_label = torch.from_numpy((np.load(args.test_label))[:,ind])
 
     # ------ TO DO: Make Prediction ------
-    pred_label = 
+    with torch.no_grad():
+        outputs = model(test_data.to(args.device).float())
+        # outputs: (num_objects, num_points, num_seg_classes)
+        pred_label = outputs.argmax(dim=2).cpu()
 
     test_accuracy = pred_label.eq(test_label.data).cpu().sum().item() / (test_label.reshape((-1,1)).size()[0])
     print ("test accuracy: {}".format(test_accuracy))
